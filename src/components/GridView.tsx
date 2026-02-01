@@ -16,6 +16,7 @@ export default function GridView({ grid, onToggleCell }: Props) {
             style={{
               width: 30,
               height: 30,
+              boxSizing: "border-box",
               border: "1px solid black",
               backgroundColor: cell ? "black" : "white",
               cursor: "pointer"

@@ -58,28 +58,86 @@ export default function Editor() {
     a.click();
   }
 
+  const cellSize = 30;
+  // fix the hint area size so layout doesn't jump when hints change
+  const maxHintLen = Math.ceil(grid.length / 2); // maximum possible runs in a line
+  const hintWidth = maxHintLen * cellSize;
+  const hintHeight = maxHintLen * cellSize;
+
   return (
     <>
       <Controls onResize={resize} onRandom={randomize} onSave={save} />
 
-      <div style={{ display: "flex", gap: 20 }}>
-        <div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: `${hintWidth}px ${grid.length * cellSize}px`,
+          gridTemplateRows: `${grid.length * cellSize}px ${hintHeight}px`
+        }}
+      >
+        {/* left: row hints (top-left) - fixed width, right-aligned per row */}
+        <div style={{ width: hintWidth, height: grid.length * cellSize, display: "flex", flexDirection: "column" }}>
           {rowHints.map((h, i) => (
-            <div key={i} style={{ height: 30 }}>
-              {h.join(" ")}
+            <div
+              key={i}
+              style={{
+                height: cellSize,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "flex-end",
+                paddingRight: 4
+              }}
+            >
+              {Array.from({ length: maxHintLen }).map((_, idx) => {
+                const valueIndex = idx - (maxHintLen - h.length);
+                const val = valueIndex >= 0 ? h[valueIndex] : null;
+                return (
+                  <div key={idx} style={{ width: cellSize, textAlign: "center" }}>
+                    {val ?? ""}
+                  </div>
+                );
+              })}
             </div>
           ))}
         </div>
 
-        <GridView grid={grid} onToggleCell={toggleCell} />
-      </div>
+        {/* grid view (top-right) */}
+        <div>
+          <GridView grid={grid} onToggleCell={toggleCell} />
+        </div>
 
-      <div style={{ marginTop: 10 }}>
-        {columnHints.map((h, i) => (
-          <span key={i} style={{ width: 30, display: "inline-block", textAlign: "center" }}>
-            {h.join(" ")}
-          </span>
-        ))}
+        {/* bottom-left empty corner */}
+        <div style={{ width: hintWidth, height: hintHeight }} />
+
+        {/* column hints (bottom-right) - fixed height and bottom-aligned so they sit next to the grid */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(${grid.length}, ${cellSize}px)`,
+            gridTemplateRows: `repeat(${maxHintLen}, ${cellSize}px)`
+          }}
+        >
+          {Array.from({ length: maxHintLen }).map((_, r) =>
+            columnHints.map((col, c) => {
+              // top-align column hints so the first hint is directly under the grid
+              const val = r < col.length ? col[r] : null;
+              return (
+                <div
+                  key={`${r}-${c}`}
+                  style={{
+                    width: cellSize,
+                    height: cellSize,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}
+                >
+                  {val ?? ""}
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
     </>
   );
